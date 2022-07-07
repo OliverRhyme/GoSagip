@@ -8,8 +8,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
+import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
-import dev.rhyme.gosagip.ui.pages.monitoring.MonitoringPage
+import dev.rhyme.gosagip.ui.pages.NavGraphs
 import dev.rhyme.gosagip.ui.theme.GoSagipTheme
 
 @AndroidEntryPoint
@@ -26,7 +27,9 @@ class MainActivity : ComponentActivity() {
                         .statusBarsPadding(),
                     color = MaterialTheme.colors.background
                 ) {
-                    MonitoringPage()
+                    DestinationsNavHost(
+                        navGraph = NavGraphs.root
+                    )
                 }
             }
         }

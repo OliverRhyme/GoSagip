@@ -1,4 +1,4 @@
-package dev.rhyme.gosagip.ui.pages.login
+package dev.rhyme.gosagip.ui.pages.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
@@ -12,14 +12,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootNavGraph
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import dev.rhyme.gosagip.ui.components.AppTitle
+import dev.rhyme.gosagip.ui.pages.destinations.RegisterPageDestination
 
+@RootNavGraph(start = true)
+@Destination
 @Composable
 fun LoginPage(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigator: DestinationsNavigator
 ) {
     Column(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -53,7 +62,9 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             modifier = Modifier.fillMaxWidth(0.8f),
-            onClick = { /*TODO*/ }
+            onClick = {
+                navigator.navigate(RegisterPageDestination)
+            }
         ) {
             Text(text = "LOGIN")
         }
