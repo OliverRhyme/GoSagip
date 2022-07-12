@@ -2,7 +2,9 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'com.google.devtools.ksp'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 android {
@@ -38,11 +40,18 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion "1.2.0"
     }
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+    applicationVariants.all { variant ->
+        kotlin.sourceSets {
+            getByName(variant.name) {
+                kotlin.srcDir("build/generated/ksp/${variant.name}/kotlin")
+            }
         }
     }
 }
@@ -70,4 +79,52 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
 
     implementation "com.google.accompanist:accompanist-systemuicontroller:$accompanist_version"
+    implementation "com.google.accompanist:accompanist-permissions:$accompanist_version"
+
+    implementation 'com.google.maps.android:maps-compose:2.5.0'
+
+    // Make sure to also include the latest version of the Maps SDK for Android
+//    implementation 'com.google.android.gms:play-services-maps:18.0.2'
+
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
+    implementation "com.squareup.retrofit2:converter-moshi:2.9.0"
+
+    implementation 'io.github.raamcosta.compose-destinations:core:1.6.13-beta'
+    ksp 'io.github.raamcosta.compose-destinations:ksp:1.6.13-beta'
+
+    implementation("com.squareup.moshi:moshi:1.13.0")
+    implementation("com.squareup.moshi:moshi-adapters:1.13.0")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.13.0")
+    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
+
+    implementation 'com.fredporciuncula:flow-preferences:1.7.0'
+
+    // Google location
+    implementation "com.google.android.gms:play-services-location:18.0.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.2"
+
+    // Google maps
+    implementation 'com.google.android.gms:play-services-maps:18.0.0'
+    // Maps SDK for Android KTX Library
+    implementation 'com.google.maps.android:maps-ktx:3.2.1'
+    // Maps SDK for Android Utility Library KTX Library
+    implementation 'com.google.maps.android:maps-utils-ktx:3.2.1'
+    // Places
+    implementation 'com.google.android.libraries.places:places:2.5.0'
+    implementation 'com.google.maps:google-maps-services:1.0.1'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
+
+    debugImplementation "com.github.chuckerteam.chucker:library:3.5.2"
+    releaseImplementation "com.github.chuckerteam.chucker:library-no-op:3.5.2"
+}
+
+kotlin.sourceSets.all {
+    languageSettings.optIn("kotlin.RequiresOptIn")
+}
+
+secrets {
+    // Optionally specify a different file name containing your secrets.
+    // The plugin defaults to "local.properties"
+    propertiesFileName = "secrets.properties"
 }
