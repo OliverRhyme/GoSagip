@@ -1,24 +1,64 @@
 package dev.rhyme.gosagip.ui.pages.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import dev.rhyme.gosagip.data.model.BloodType
 import dev.rhyme.gosagip.ui.pages.CommonPage
+import dev.rhyme.gosagip.ui.pages.NavGraphs
+import dev.rhyme.gosagip.ui.pages.destinations.BackRidePageDestination
 import dev.rhyme.gosagip.ui.theme.GoSagipTheme
+import kotlinx.coroutines.launch
 
 @Destination
 @Composable
-fun RegisterPage() {
-    CommonPage {
+fun RegisterPage(
+    navigator: DestinationsNavigator,
+    viewModel: AuthViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+
+    LaunchedEffect(viewModel) {
+        viewModel.errorState
+            .collect {
+                Toast.makeText(context, it.ifBlank { "Unknown Error" }, Toast.LENGTH_LONG).show()
+            }
+    }
+
+    CommonPage(
+        modifier = Modifier.verticalScroll(
+            state = rememberScrollState()
+        )
+    ) {
+
+        val username: MutableState<String> = remember { mutableStateOf("") }
+        val password: MutableState<String> = remember { mutableStateOf("") }
+        val fullName: MutableState<String> = remember { mutableStateOf("") }
+        val address: MutableState<String> = remember { mutableStateOf("") }
+        val plateNumber: MutableState<String> = remember { mutableStateOf("") }
+        val bloodType: MutableState<BloodType?> = remember { mutableStateOf(null) }
+        val emergencyContact: MutableState<String> = remember { mutableStateOf("") }
+        val emergencyContactNumber: MutableState<String> = remember { mutableStateOf("") }
+        val deviceId: MutableState<String> = remember { mutableStateOf("") }
+
+        val scope = rememberCoroutineScope()
         Text(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             text = "Create Account",
@@ -28,15 +68,41 @@ fun RegisterPage() {
         Spacer(modifier = Modifier.height(32.dp))
         DetailsForm(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            fullName = remember { mutableStateOf("") },
-            address = remember { mutableStateOf("") },
-            plateNumber = remember { mutableStateOf("") },
-            bloodType = remember { mutableStateOf(null) },
-            emergencyContact = remember { mutableStateOf("") },
-            emergencyContactNumber = remember { mutableStateOf("null") },
-            deviceId = remember { mutableStateOf("null") },
+            username = username,
+            password = password,
+            fullName = fullName,
+            address = address,
+            plateNumber = plateNumber,
+            bloodType = bloodType,
+            emergencyContact = emergencyContact,
+            emergencyContactNumber = emergencyContactNumber,
+            deviceId = deviceId,
             submitText = "REGISTER",
             onSubmit = {
+                scope.launch {
+                    if (viewModel.registerRider(
+                            username = username.value,
+                            password = password.value,
+                            fullName = fullName.value,
+                            address = address.value,
+                            plateNumber = plateNumber.value,
+                            bloodType = bloodType.value!!,
+                            emergencyContact = emergencyContact.value,
+                            emergencyContactNumber = emergencyContactNumber.value,
+                            deviceId = deviceId.value
+                        )
+                    ) {
+                        Toast.makeText(
+                            context,
+                            "Successfully registered",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        navigator.navigate(BackRidePageDestination) {
+                            popUpTo(NavGraphs.root.route)
+                        }
+                    }
+                }
+
             }
         )
     }
@@ -46,13 +112,15 @@ fun RegisterPage() {
 @Composable
 fun DetailsForm(
     modifier: Modifier = Modifier,
+    username: MutableState<String>,
+    password: MutableState<String>? = null,
     fullName: MutableState<String>,
     address: MutableState<String>,
     plateNumber: MutableState<String>,
     bloodType: MutableState<BloodType?>,
     emergencyContact: MutableState<String>,
     emergencyContactNumber: MutableState<String>,
-    deviceId: MutableState<String>,
+    deviceId: MutableState<String>? = null,
     submitText: String,
     onSubmit: () -> Unit
 ) {
@@ -69,6 +137,28 @@ fun DetailsForm(
             unfocusedIndicatorColor = Color.Transparent
         )
 
+        TextField(
+            modifier = Modifier
+                .then(fieldPadding),
+            value = username.value,
+            label = {
+                Text(text = "User Name")
+            },
+            onValueChange = { username.value = it },
+            colors = fieldColors
+        )
+        password?.let { state ->
+            TextField(
+                modifier = Modifier
+                    .then(fieldPadding),
+                value = state.value,
+                label = {
+                    Text(text = "Password")
+                },
+                onValueChange = { state.value = it },
+                colors = fieldColors
+            )
+        }
         TextField(
             modifier = Modifier
                 .then(fieldPadding),
@@ -166,19 +256,24 @@ fun DetailsForm(
             },
             onValueChange = { emergencyContactNumber.value = it },
             colors = fieldColors,
-            maxLines = 1
+            maxLines = 1,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Phone
+            )
         )
-        TextField(
-            modifier = Modifier
-                .then(fieldPadding),
-            value = deviceId.value,
-            label = {
-                Text(text = "Device ID")
-            },
-            onValueChange = { deviceId.value = it },
-            colors = fieldColors,
-            maxLines = 1
-        )
+        deviceId?.let { state ->
+            TextField(
+                modifier = Modifier
+                    .then(fieldPadding),
+                value = state.value,
+                label = {
+                    Text(text = "Device ID")
+                },
+                onValueChange = { state.value = it },
+                colors = fieldColors,
+                maxLines = 1
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             modifier = Modifier
@@ -196,7 +291,9 @@ fun DetailsForm(
 fun BackRidePagePreview() {
     GoSagipTheme {
         Surface(color = MaterialTheme.colors.background) {
-            RegisterPage()
+            RegisterPage(
+                navigator = EmptyDestinationsNavigator
+            )
         }
     }
 }

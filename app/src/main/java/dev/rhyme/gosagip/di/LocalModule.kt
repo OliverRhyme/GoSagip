@@ -1,6 +1,5 @@
 package dev.rhyme.gosagip.di
 
-import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import com.fredporciuncula.flow.preferences.FlowSharedPreferences
@@ -19,7 +18,7 @@ object LocalModule {
 
     @Singleton
     @Provides
-    fun provideSharedPreferences(@ApplicationContext context: Activity): SharedPreferences {
+    fun provideSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
         return context.getSharedPreferences(
             "${BuildConfig.APPLICATION_ID}.prefs",
             Context.MODE_PRIVATE
